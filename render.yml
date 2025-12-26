@@ -1,0 +1,34 @@
+services:
+  # Database PostgreSQL
+  - type: pserv
+    name: secretsanta-db
+    env: docker
+    plan: free
+    
+  # Backend API
+  - type: web
+    name: secretsanta-backend
+    env: python
+    plan: free
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: secretsanta-db
+          property: connectionString
+    
+  # Frontend Next.js
+  - type: web
+    name: secretsanta-frontend
+    env: node
+    plan: free
+    buildCommand: "cd frontend && npm install && npm run build"
+    startCommand: "cd frontend && npm start"
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://secretsanta-backend.onrender.com
+
+databases:
+  - name: secretsanta-db
+    plan: free
